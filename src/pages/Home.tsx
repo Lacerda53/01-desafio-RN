@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Alert, Keyboard, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 
 import { Header } from '../components/Header';
 import { Task, TasksList } from '../components/TasksList';
@@ -24,21 +24,52 @@ export function Home() {
   }
 
   function handleRemoveTask(id: number) {
-    setTasks(prevValue => prevValue.filter(item => item.id !== id))
+    return Alert.alert(
+      "Remover item",
+      "Tem certeza que deseja remover esse item?",
+      [
+        {
+          text: "Sim",
+          onPress: () => {
+            setTasks(prevValue => prevValue.filter(item => item.id !== id));
+          },
+        },
+        {
+          text: "Não",
+        },
+      ]
+    );
+  }
+
+  function handleChangeTask(id: number, task: string) {
+    setTasks(prevValue => prevValue.map(item => {
+
+      if (item.id === id) {
+
+        return {
+          ...item,
+          title: task
+        }
+      }
+      return item;
+    }))
   }
 
   return (
-    <View style={styles.container}>
-      <Header tasksCounter={tasks.length} />
+    <TouchableWithoutFeedback style={styles.container} onPress={Keyboard.dismiss}>
+      <>
+        <Header tasksCounter={tasks.length} />
 
-      <TodoInput addTask={handleAddTask} />
+        <TodoInput addTask={handleAddTask} />
 
-      <TasksList
-        tasks={tasks}
-        toggleTaskDone={handleToggleTaskDone}
-        removeTask={handleRemoveTask}
-      />
-    </View>
+        <TasksList
+          tasks={tasks}
+          toggleTaskDone={handleToggleTaskDone}
+          removeTask={handleRemoveTask}
+          onChangeTask={handleChangeTask}
+        />
+      </>
+    </TouchableWithoutFeedback>
   )
 }
 

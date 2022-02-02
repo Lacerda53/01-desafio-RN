@@ -1,10 +1,12 @@
-import React from 'react';
-import { FlatList, Image, TouchableOpacity, View, Text, StyleSheet, FlatListProps } from 'react-native';
+import React, { useState } from 'react';
+import { FlatList, Image, TouchableOpacity, View, Text, StyleSheet, TextInput } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 
 import { ItemWrapper } from './ItemWrapper';
 
 import trashIcon from '../assets/icons/trash/trash.png'
+import penIcon from '../assets/icons/pen/pen.png'
+import closeIcon from '../assets/icons/close/close.png'
 
 export interface Task {
   id: number;
@@ -16,9 +18,19 @@ interface TasksListProps {
   tasks: Task[];
   toggleTaskDone: (id: number) => void;
   removeTask: (id: number) => void;
+  onChangeTask: (id: number, task: string) => void;
 }
 
-export function TasksList({ tasks, toggleTaskDone, removeTask }: TasksListProps) {
+export function TasksList({ tasks, toggleTaskDone, onChangeTask, removeTask }: TasksListProps) {
+  const [editIndex, setEditIndex] = useState<number>(0);
+  const [isEdit, setIsEdit] = useState<boolean>(false);
+
+  function handleEdit(index: number) {
+
+    setEditIndex(index);
+    setIsEdit(prevValue => !prevValue);
+  }
+
   return (
     <FlatList
       data={tasks}
@@ -48,22 +60,37 @@ export function TasksList({ tasks, toggleTaskDone, removeTask }: TasksListProps)
                   )}
                 </View>
 
-                <Text
-                  style={item.done ? styles.taskTextDone: styles.taskText}
-                >
-                  {item.title}
-                </Text>
+                {isEdit && editIndex === index ? (
+                  <TextInput value={item.title} autoFocus onChangeText={(task) => onChangeTask(item.id, task)} />
+                ) : (
+                  <Text
+                    style={[styles.text, item.done ? styles.taskTextDone : styles.taskText]}
+                  >
+                    {item.title}
+                  </Text>
+                )}
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity
-              testID={`trash-${index}`}
-              style={{ paddingHorizontal: 24 }}
-              onPress={() => removeTask(item.id)}
-            >
-              <Image source={trashIcon} />
-            </TouchableOpacity>
-          </ItemWrapper>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={{ paddingHorizontal: 15 }}
+                onPress={() => handleEdit(index)}
+              >
+                <Image source={isEdit && editIndex === index ? closeIcon : penIcon} />
+              </TouchableOpacity>
+
+              <View style={styles.divider}></View>
+
+              <TouchableOpacity
+                testID={`trash-${index}`}
+                style={{ paddingHorizontal: 15 }}
+                onPress={() => removeTask(item.id)}
+              >
+                <Image source={trashIcon} />
+              </TouchableOpacity>
+            </View>
+          </ItemWrapper >
         )
       }}
       style={{
@@ -110,5 +137,18 @@ const styles = StyleSheet.create({
     color: '#1DB863',
     textDecorationLine: 'line-through',
     fontFamily: 'Inter-Medium'
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 24
+  },
+  divider: {
+    width: 1,
+    height: 16,
+    backgroundColor: '#C4C4C4'
+  },
+  text: {
+    paddingVertical: 12,
+    paddingHorizontal: 4
   }
 })
